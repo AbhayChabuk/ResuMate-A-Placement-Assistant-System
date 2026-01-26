@@ -1,0 +1,142 @@
+/* LIME PISTACHIO - FINAL HIGH-VISIBILITY CODE */
+
+.login-container {
+  min-height: 100vh !important;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  background-color: #DDEFE0 !important; 
+  background-image: radial-gradient(circle at 0% 0%, #CDE8D5 0%, #DDEFE0 70%) !important;
+  padding: 20px;
+}
+
+.login-card {
+  background: #a1f56c !important; 
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 40px rgba(27, 38, 26, 0.15); 
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-title {
+  color: #1B261A !important; 
+  text-align: center;
+  margin-bottom: 5px;
+  font-weight: 800;
+  font-size: 2.2rem;
+}
+
+.login-card h2 {
+  color: #1B261A !important; 
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #1B261A !important; 
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+/* --- THE UNBREAKABLE INPUT FIX WITH CURSOR VISIBILITY --- */
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1.5px solid rgba(27, 38, 26, 0.2) !important;
+  
+  /* 1. Force Black Text and Black Caret (Typing Marker) */
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  caret-color: #000000 !important; /* Forces the blinking cursor to be visible */
+
+  /* 2. Force #eeffe3 Background using Inset Shadow */
+  box-shadow: 0 0 0px 1000px #eeffe3 inset !important;
+  background-color: #eeffe3 !important;
+
+  /* 3. General Cleanup */
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+/* 4. Persistence during Typing & Autofill */
+.form-group input:-webkit-autofill,
+.form-group input:-webkit-autofill:hover, 
+.form-group input:-webkit-autofill:focus,
+.form-group input:not(:placeholder-shown) {
+  -webkit-text-fill-color: #000000 !important;
+  caret-color: #000000 !important;
+  box-shadow: 0 0 0px 1000px #eeffe3 inset !important;
+}
+
+/* 5. Focus State: High-contrast Caret and Border */
+.form-group input:focus {
+  border-color: #1B261A !important;
+  caret-color: #000000 !important;
+  /* Maintain the inset shadow and add a soft outer glow */
+  box-shadow: 0 0 0px 1000px #eeffe3 inset, 0 0 0 4px rgba(27, 38, 26, 0.1) !important;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 14px;
+  background: #D4E938 !important; 
+  color: #1B261A !important; 
+  border: none !important;
+  border-radius: 8px;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.submit-button:hover {
+  background: #1B261A !important; 
+  color: #a1f56c !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.link-text {
+  text-align: center;
+  margin-top: 25px;
+  /* Deep black for the main question text */
+  color: #000000 !important;
+  font-size: 15px;
+  font-weight: 600;
+  /* Ensures no transparency issues */
+  opacity: 1 !important;
+}
+
+.link-text a {
+  /* High-contrast Royal Blue for the link */
+  color: #0047FF !important; 
+  text-decoration: underline;
+  font-weight: 800;
+  margin-left: 5px;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.link-text a:hover {
+  /* Darker shade on hover to show interactivity */
+  color: #002BB3 !important;
+  text-decoration: none;
+  transform: scale(1.05);
+}

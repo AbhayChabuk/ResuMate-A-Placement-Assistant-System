@@ -1,0 +1,147 @@
+/* LIME PISTACHIO - MAIN PAGE DASHBOARD (UNIFIED VERSION) */
+
+.main-container {
+  min-height: 100vh !important;
+  background-color: #DDEFE0 !important;
+  background-image: radial-gradient(circle at 0% 0%, #CDE8D5 0%, #DDEFE0 70%) !important;
+  font-family: 'Inter', sans-serif;
+}
+
+/* HEADER STYLES */
+.main-header {
+  background: #a1f56c !important; 
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(27, 38, 26, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.main-header h1 {
+  color: #1B261A !important;
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.logout-button {
+  padding: 10px 20px;
+  background: #1B261A !important;
+  color: #a1f56c !important;
+  border: none !important;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logout-button:hover {
+  background: #D4E938 !important;
+  color: #1B261A !important;
+  transform: translateY(-2px);
+}
+
+/* MAIN CONTENT */
+.main-content {
+  padding: 60px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.main-content h2 {
+  text-align: center;
+  color: #1B261A !important;
+  font-size: 2.8rem;
+  margin-bottom: 50px;
+  font-weight: 800;
+}
+
+.sections-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 30px;
+}
+
+/* --- SECTION CARD BASE --- */
+.section-card {
+  background: #a1f56c !important;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(27, 38, 26, 0.1);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  /* Unified transition for card movement */
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.section-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px rgba(27, 38, 26, 0.15);
+}
+
+.section-card h3 {
+  color: #1B261A !important;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 20px;
+}
+
+.section-card p {
+  color: #1B261A !important;
+  line-height: 1.6;
+  font-weight: 500;
+  margin-bottom: 30px;
+  flex-grow: 1;
+}
+
+/* --- UNIFIED BUTTON SYSTEM --- */
+
+.section-button {
+  width: 100%;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  border: none !important;
+  text-align: center;
+  /* Matching transition speed and curve for both buttons */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* PlacementPrep Specific State */
+.placement-prep {
+  border-top: 6px solid #16423C !important; 
+}
+.placement-prep .section-button {
+  background: #16423C !important; 
+  color: #eeffe3 !important;
+}
+
+/* ResuHelp Specific State */
+.resu-help {
+  border-top: 6px solid #D4E938 !important;
+}
+.resu-help .section-button {
+  background: #D4E938 !important; 
+  color: #1B261A !important;
+}
+
+/* --- SHARED HOVER ACTION --- */
+/* Both buttons now share the exact same hover behavior */
+.placement-prep .section-button:hover,
+.resu-help .section-button:hover {
+  background: #1B261A !important; /* Unified Forest Green BG */
+  color: #a1f56c !important;      /* Unified Lime Text */
+  transform: translateY(-4px);    /* Unified lift distance */
+  box-shadow: 0 10px 20px rgba(27, 38, 26, 0.2);
+}
+
+@media (max-width: 768px) {
+  .sections-container { grid-template-columns: 1fr; }
+  .main-content h2 { font-size: 2.2rem; }
+}
+

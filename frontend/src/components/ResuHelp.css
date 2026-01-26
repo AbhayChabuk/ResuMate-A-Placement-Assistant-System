@@ -1,0 +1,242 @@
+/* LIME PISTACHIO - PREMIUM & UNCLUTTERED RESUHELP SECTION */
+
+.resuhelp-container {
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* --- NEW: BACK TO MAIN BUTTON STYLING --- */
+.back-button {
+  padding: 10px 20px;
+  background: rgba(27, 38, 26, 0.1) !important;
+  color: #1B261A !important;
+  border: 1px solid rgba(27, 38, 26, 0.2) !important;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-right: 15px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.back-button:hover {
+  background: #1B261A !important;
+  color: #a1f56c !important;
+  transform: translateY(-2px);
+}
+
+/* Heading: Deep Forest */
+.resuhelp-container h2 {
+  color: #1B261A !important; 
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.resuhelp-subtitle {
+  text-align: center;
+  color: #2D3A2C !important;
+  margin-bottom: 40px;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* UPLOAD CARDS */
+.upload-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.upload-card {
+  border: 2px dashed rgba(27, 38, 26, 0.3) !important;
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #a1f56c !important; 
+}
+
+.upload-card:hover {
+  background: #c7f149 !important; /* Brand Yellowish Hover */
+  border-color: #1B261A !important;
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(27, 38, 26, 0.1);
+}
+
+/* Browser File Button Fix */
+input[type="file"]::file-selector-button {
+  background: #1B261A;
+  color: #a1f56c;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  margin-right: 10px;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+input[type="file"]::file-selector-button:hover {
+  background: #D4E938;
+  color: #1B261A;
+}
+
+/* MAIN ANALYZE BUTTON */
+.analyze-button {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto 50px;
+  display: block;
+  padding: 18px 32px;
+  background: #c9f741 !important;
+  color: #1B261A !important;
+  border: none !important;
+  border-radius: 15px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.analyze-button:hover:not(:disabled) {
+  background: #1B261A !important;
+  color: #a1f56c !important;
+  transform: translateY(-4px);
+  box-shadow: 0 15px 30px rgba(27, 38, 26, 0.2);
+}
+
+/* --- ENHANCED & UNCLUTTERED REPORT SECTION --- */
+
+.analysis-result {
+  background: #a1f56c !important; 
+  border-radius: 35px;
+  padding: 50px;
+  margin-top: 30px;
+  box-shadow: 0 25px 60px rgba(27, 38, 26, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Score Section - Glass Logic */
+.job-fit-score {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 40px;
+  border-radius: 28px;
+  margin-bottom: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.score-value {
+  font-size: 7rem;
+  font-weight: 950;
+  color: #1B261A !important;
+  line-height: 1;
+  text-shadow: 3px 3px 0px #D4E938;
+}
+
+.score-total {
+  font-size: 2rem;
+  color: rgba(27, 38, 26, 0.5);
+  font-weight: 800;
+}
+
+/* Analysis Details - FIXED TYPOGRAPHY */
+.analysis-details-text {
+  background: #eeffe3;
+  padding: 40px;
+  border-radius: 24px;
+  border-left: 12px solid #1B261A;
+  margin-bottom: 40px;
+  color: #000000 !important;
+  
+  /* TYPOGRAPHY FIXES */
+  line-height: 1.9 !important; /* Fixed from extreme value */
+  font-size: 1.15rem !important; /* Fixed from extreme value */
+  font-family: 'Inter', system-ui, sans-serif;
+  text-align: left;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+/* Recommendation Pill Styling */
+.recommendations-list {
+  list-style: none;
+  padding: 0;
+}
+
+.recommendations-list li {
+  background: rgba(255, 255, 255, 0.35);
+  margin-bottom: 12px;
+  padding: 20px 20px 20px 55px !important;
+  border-radius: 16px;
+  border: none !important;
+  font-weight: 700;
+  color: #1B261A !important;
+  position: relative;
+  font-size: 1.05rem;
+}
+
+.recommendations-list li::before {
+  content: "✓";
+  position: absolute;
+  left: 20px;
+  color: #16423C;
+  font-weight: 900;
+  font-size: 1.3rem;
+}
+
+/* Keywords Grid - Glass Separation */
+.keywords-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.keywords-box {
+  background: rgba(255, 255, 255, 0.5) !important;
+  padding: 30px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+}
+
+.keywords-box h4 {
+  margin-bottom: 25px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+/* Download Button - Premium Action */
+.download-button {
+  background: #1B261A !important;
+  color: #a1f56c !important;
+  width: auto !important;
+  padding: 20px 45px;
+  margin: 30px auto 0;
+  display: flex;
+  justify-content: center;
+  border-radius: 18px;
+  font-weight: 900;
+  font-size: 1.05rem;
+  box-shadow: 0 15px 30px rgba(27, 38, 26, 0.2);
+}
+
+.download-button:hover {
+  background: #000000 !important;
+  transform: translateY(-5px);
+}
+
+
+
