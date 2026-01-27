@@ -30,6 +30,9 @@ export const authAPI = {
       },
     });
   },
+  generateAtsResume: (data) => {
+    return api.post('/resume/generate-ats-resume', data);
+  },
 };
 
 export default api;

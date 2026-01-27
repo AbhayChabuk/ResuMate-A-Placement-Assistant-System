@@ -8,6 +8,8 @@ const ResuHelp = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [generatingResume, setGeneratingResume] = useState(false);
+  const [atsResumeText, setAtsResumeText] = useState('');
 
   const handleResumeChange = (e) => {
     const file = e.target.files[0];
@@ -69,6 +71,47 @@ const ResuHelp = () => {
     }
   };
 
+  const getCleanAnalysis = (analysis) => {
+    if (!analysis) return '';
+    let text = typeof analysis === 'string' ? analysis : String(analysis);
+
+    text = text.trim();
+
+    // Strip markdown code fences if present
+    if (text.startsWith('```')) {
+      text = text.replace(/^```[a-zA-Z0-9]*\s*/, '');
+      if (text.endsWith('```')) {
+        text = text.slice(0, -3).trim();
+      }
+    }
+
+    // Try to parse JSON and extract the "analysis" field
+    if (text.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(text);
+        if (parsed && typeof parsed.analysis === 'string') {
+          return parsed.analysis.trim();
+        }
+      } catch (e) {
+        // Not valid JSON, fall through to plain text
+      }
+    }
+
+    return text;
+  };
+
+  const getRecommendationLines = (result) => {
+    if (!result || !result.recommendations) return [];
+    const rec = result.recommendations;
+    if (Array.isArray(rec)) {
+      return rec.map((r) => String(r));
+    }
+    if (typeof rec === 'string') {
+      return rec.split('\n');
+    }
+    return [String(rec)];
+  };
+
   const handleDownloadReport = () => {
     if (!analysisResult) return;
 
@@ -99,6 +142,61 @@ ${analysisResult.missingKeywords.join(', ')}
     const a = document.createElement('a');
     a.href = url;
     a.download = `Resume_Analysis_Report_${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
+  const handleGenerateAtsResume = async () => {
+    if (!analysisResult) return;
+
+    setError('');
+    setGeneratingResume(true);
+
+    try {
+      // Fetch the user's profile
+      const profileResponse = await authAPI.getProfile();
+      const profile = profileResponse.data?.profile;
+
+      if (!profile) {
+        throw new Error('Profile not found. Please complete your profile first.');
+      }
+
+      const response = await authAPI.generateAtsResume({
+        profile,
+        analysisResult,
+      });
+
+      const resumeText = response.data?.resumeText;
+
+      if (!resumeText) {
+        throw new Error('Failed to generate ATS-friendly resume. No content returned.');
+      }
+
+      // Store the generated resume text for preview and later download
+      setAtsResumeText(resumeText);
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        'Failed to generate ATS-friendly resume. Please try again.';
+      setError(errorMessage);
+      console.error('ATS resume generation error:', err.response?.data || err);
+    } finally {
+      setGeneratingResume(false);
+    }
+  };
+
+  const handleDownloadAtsResume = () => {
+    if (!atsResumeText) return;
+
+    const blob = new Blob([atsResumeText], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ATS_Friendly_Resume_${Date.now()}.txt`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
@@ -174,15 +272,16 @@ ${analysisResult.missingKeywords.join(', ')}
           <div className="analysis-details">
             <div className="detail-section">
               <h4>Analysis</h4>
-              <p>{analysisResult.analysis}</p>
+              <p>{getCleanAnalysis(analysisResult.analysis)}</p>
             </div>
 
             <div className="detail-section">
               <h4>Recommendations</h4>
               <ul>
-                {analysisResult.recommendations.split('\n').map((rec, index) => 
-                  rec.trim() && <li key={index}>{rec.trim()}</li>
-                )}
+                {getRecommendationLines(analysisResult).map((rec, index) => {
+                  const trimmed = rec.trim();
+                  return trimmed ? <li key={index}>{trimmed}</li> : null;
+                })}
               </ul>
             </div>
 
@@ -190,7 +289,7 @@ ${analysisResult.missingKeywords.join(', ')}
               <div className="keywords-box matched">
                 <h4>Matched Keywords</h4>
                 <div className="keywords-list">
-                  {analysisResult.matchedKeywords.map((keyword, index) => (
+                  {(analysisResult.matchedKeywords || []).map((keyword, index) => (
                     <span key={index} className="keyword-tag matched-tag">{keyword}</span>
                   ))}
                 </div>
@@ -199,7 +298,7 @@ ${analysisResult.missingKeywords.join(', ')}
               <div className="keywords-box missing">
                 <h4>Missing Keywords</h4>
                 <div className="keywords-list">
-                  {analysisResult.missingKeywords.map((keyword, index) => (
+                  {(analysisResult.missingKeywords || []).map((keyword, index) => (
                     <span key={index} className="keyword-tag missing-tag">{keyword}</span>
                   ))}
                 </div>
@@ -209,6 +308,31 @@ ${analysisResult.missingKeywords.join(', ')}
             <button className="download-button" onClick={handleDownloadReport}>
               📥 Download Analysis Report
             </button>
+
+            <button
+              className="download-button"
+              style={{ marginTop: '10px', background: 'linear-gradient(135deg, #28a745 0%, #218838 100%)' }}
+              onClick={handleGenerateAtsResume}
+              disabled={generatingResume}
+            >
+              {generatingResume ? 'Generating ATS-Friendly Resume...' : '✨ Generate ATS-Friendly Resume'}
+            </button>
+
+            {atsResumeText && (
+              <div className="ats-resume-preview">
+                <h4>ATS-Friendly Resume Preview</h4>
+                <div className="ats-resume-box">
+                  <pre>{atsResumeText}</pre>
+                </div>
+                <button
+                  className="download-button"
+                  style={{ marginTop: '10px' }}
+                  onClick={handleDownloadAtsResume}
+                >
+                  ⬇️ Download ATS-Friendly Resume
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

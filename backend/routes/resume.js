@@ -147,6 +147,35 @@ const extractTextFromFile = async (file) => {
   }
 };
 
+// Simple keyword matching between resume and job description
+const computeKeywordMatch = (resumeText, jobDescriptionText) => {
+  const resumeLower = (resumeText || '').toLowerCase();
+  const jobDescLower = (jobDescriptionText || '').toLowerCase();
+
+  const jobWords = jobDescLower
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .filter((word) => word.length > 3);
+
+  const uniqueJobWords = Array.from(new Set(jobWords));
+
+  const matchedKeywords = [];
+  const missingKeywords = [];
+
+  uniqueJobWords.forEach((word) => {
+    if (resumeLower.includes(word)) {
+      matchedKeywords.push(word);
+    } else {
+      missingKeywords.push(word);
+    }
+  });
+
+  return {
+    matchedKeywords,
+    missingKeywords,
+  };
+};
+
 // Analyze resume against job description using Groq API
 const analyzeResumeWithGrok = async (resumeText, jobDescriptionText) => {
   const groqApiKey = process.env.GROQ_API_KEY || process.env.GROK_API_KEY;
@@ -314,13 +343,70 @@ Return ONLY valid JSON, no additional text.`;
       };
     }
 
+    // --- Normalise matched and missing keywords into arrays of strings ---
+    const normaliseKeywords = (raw) => {
+      if (!raw) return [];
+
+      // Already an array
+      if (Array.isArray(raw)) {
+        return raw
+          .map((kw) => (typeof kw === 'string' ? kw : String(kw)))
+          .map((kw) => kw.trim())
+          .filter((kw) => kw.length > 0);
+      }
+
+      // If it's a string, try JSON.parse first
+      if (typeof raw === 'string') {
+        let parsed;
+        try {
+          parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            return parsed
+              .map((kw) => (typeof kw === 'string' ? kw : String(kw)))
+              .map((kw) => kw.trim())
+              .filter((kw) => kw.length > 0);
+          }
+        } catch (e) {
+          // Not a JSON array, fall back to splitting
+        }
+
+        return raw
+          .split(/[,;\n]/)
+          .map((kw) => kw.trim())
+          .filter((kw) => kw.length > 0);
+      }
+
+      // Any other type - convert to string and split on commas
+      return String(raw)
+        .split(/[,;\n]/)
+        .map((kw) => kw.trim())
+        .filter((kw) => kw.length > 0);
+    };
+
+    // Compute fallback keyword matching based on raw texts
+    const fallbackKeywords = computeKeywordMatch(resumeText, jobDescriptionText);
+
+    let matchedKeywords = normaliseKeywords(analysisResult.matchedKeywords);
+    let missingKeywords = normaliseKeywords(analysisResult.missingKeywords);
+
+    // If Groq didn't return keywords, use fallback sets
+    if (!matchedKeywords.length && fallbackKeywords.matchedKeywords.length) {
+      matchedKeywords = fallbackKeywords.matchedKeywords;
+    }
+    if (!missingKeywords.length && fallbackKeywords.missingKeywords.length) {
+      missingKeywords = fallbackKeywords.missingKeywords;
+    }
+
+    matchedKeywords = matchedKeywords.slice(0, 20);
+    missingKeywords = missingKeywords.slice(0, 20);
+
     // Validate and ensure all required fields exist
     return {
       jobFitScore: Math.min(100, Math.max(0, analysisResult.jobFitScore || 50)),
       analysis: analysisResult.analysis || 'Analysis completed. Please review your resume against the job requirements.',
       recommendations: analysisResult.recommendations || 'Consider tailoring your resume to better match the job description.',
-      matchedKeywords: Array.isArray(analysisResult.matchedKeywords) ? analysisResult.matchedKeywords.slice(0, 20) : [],
-      missingKeywords: Array.isArray(analysisResult.missingKeywords) ? analysisResult.missingKeywords.slice(0, 20) : [],
+      matchedKeywords,
+      missingKeywords,
       scoreDescription: analysisResult.scoreDescription || (analysisResult.jobFitScore >= 80 ? 'Good match' : 'Needs improvement')
     };
   } catch (error) {
@@ -475,6 +561,117 @@ router.post('/analyze', verifyToken, upload.fields([
       message: errorMessage,
       error: errorMessage,
       details: errorDetails
+    });
+  }
+});
+
+// Generate ATS-friendly resume route
+router.post('/generate-ats-resume', verifyToken, async (req, res) => {
+  try {
+    const { profile, analysisResult } = req.body || {};
+
+    if (!profile) {
+      return res.status(400).json({ message: 'Profile data is required to generate ATS-friendly resume' });
+    }
+
+    if (!analysisResult) {
+      return res.status(400).json({ message: 'Analysis result is required to generate ATS-friendly resume' });
+    }
+
+    const groqApiKey = process.env.GROQ_API_KEY || process.env.GROK_API_KEY;
+    let groqApiUrl = process.env.GROQ_API_URL || process.env.GROK_API_URL || 'https://api.groq.com/openai/v1/chat/completions';
+    groqApiUrl = groqApiUrl.trim().replace(/\.$/, '');
+    const groqModel = process.env.GROQ_MODEL || process.env.GROK_MODEL || 'llama-3.3-70b-versatile';
+
+    if (!groqApiKey) {
+      return res.status(500).json({ message: 'Groq API key is not configured on the server' });
+    }
+
+    // Build a detailed prompt for ATS-friendly resume generation
+    const prompt = `
+You are an expert resume writer and ATS optimization specialist.
+Using the candidate profile and the resume analysis report, generate a complete, ATS-friendly resume
+that strongly aligns with the job description. The resume must be plain text, cleanly formatted, and ready
+to be pasted into any resume builder or ATS system.
+
+Return ONLY the resume text, no explanations.
+
+--------------------------
+CANDIDATE PROFILE (JSON):
+${JSON.stringify(profile, null, 2)}
+
+--------------------------
+RESUME ANALYSIS RESULT (JSON):
+${JSON.stringify(analysisResult, null, 2)}
+
+--------------------------
+Guidelines:
+- Use clear section headings: "SUMMARY", "SKILLS", "EXPERIENCE", "PROJECTS", "EDUCATION", "CERTIFICATIONS" (if applicable)
+- Incorporate matched keywords naturally.
+- Where appropriate, try to weave in some missing keywords if they are honest and relevant.
+- Keep the language professional and concise.
+- Use bullet points for experience and projects.
+- Quantify achievements wherever possible.
+- Ensure the resume remains truthful to the candidate profile.
+`;
+
+    console.log('Sending ATS resume generation request to Groq API...');
+
+    const requestBody = {
+      model: groqModel,
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
+      stream: false
+    };
+
+    const response = await axios.post(
+      groqApiUrl,
+      requestBody,
+      {
+        headers: {
+          'Authorization': `Bearer ${groqApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 60000,
+        validateStatus: (status) => status < 500
+      }
+    );
+
+    if (response.status !== 200 && response.status !== 201) {
+      console.error('Groq ATS resume API returned non-success status:', response.status);
+      console.error('Response data:', JSON.stringify(response.data, null, 2));
+      return res.status(500).json({
+        message: 'Failed to generate ATS-friendly resume',
+        error: response.data
+      });
+    }
+
+    if (!response.data || !response.data.choices || !response.data.choices[0]) {
+      console.error('Unexpected Groq ATS resume response structure:', JSON.stringify(response.data, null, 2));
+      return res.status(500).json({ message: 'Invalid response structure from Groq API when generating resume' });
+    }
+
+    const atsResumeText = response.data.choices[0].message?.content;
+
+    if (!atsResumeText) {
+      return res.status(500).json({ message: 'Groq API did not return resume content' });
+    }
+
+    return res.json({
+      message: 'ATS-friendly resume generated successfully',
+      resumeText: atsResumeText
+    });
+  } catch (error) {
+    console.error('Error generating ATS-friendly resume:', error);
+    return res.status(500).json({
+      message: 'Failed to generate ATS-friendly resume',
+      error: error.message
     });
   }
 });
