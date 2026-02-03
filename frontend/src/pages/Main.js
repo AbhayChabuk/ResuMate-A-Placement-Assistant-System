@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ResuHelp from '../components/ResuHelp';
+import PlacementPrep from '../components/PlacementPrep';
 import './Main.css';
 
 const Main = () => {
@@ -13,6 +14,10 @@ const Main = () => {
     navigate('/login');
   };
 
+  const handleGoToProfile = () => {
+    navigate('/profile');
+  };
+
   const handleSectionClick = (section) => {
     setActiveSection(section);
   };
@@ -20,6 +25,27 @@ const Main = () => {
   const handleBackToMain = () => {
     setActiveSection(null);
   };
+
+  if (activeSection === 'placementprep') {
+    return (
+      <div className="main-container">
+        <header className="main-header">
+          <h1>ResuMate</h1>
+          <div className="header-actions">
+            <button onClick={handleBackToMain} className="back-button">
+              ← Back to Main
+            </button>
+            <button onClick={handleLogout} className="logout-button">
+              Logout
+            </button>
+          </div>
+        </header>
+        <div className="section-content">
+          <PlacementPrep />
+        </div>
+      </div>
+    );
+  }
 
   if (activeSection === 'resuhelp') {
     return (
@@ -46,9 +72,14 @@ const Main = () => {
     <div className="main-container">
       <header className="main-header">
         <h1>ResuMate</h1>
-        <button onClick={handleLogout} className="logout-button">
-          Logout
-        </button>
+        <div className="header-actions">
+          <button onClick={handleGoToProfile} className="profile-button">
+            My Profile
+          </button>
+          <button onClick={handleLogout} className="logout-button">
+            Logout
+          </button>
+        </div>
       </header>
 
       <div className="main-content">

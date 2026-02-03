@@ -30,12 +30,8 @@ const Login = () => {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
-      // Check if user has profile, if not redirect to profile generation
-      if (!response.data.user.hasProfile) {
-        navigate('/profile');
-      } else {
-        navigate('/main');
-      }
+      // After login, always go to main dashboard
+      navigate('/main');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {

@@ -8,7 +8,7 @@ const mammoth = require('mammoth');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-const jwt = require('jsonwebtoken');
+const auth = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -31,22 +31,7 @@ const upload = multer({
   },
 });
 
-// Middleware to verify JWT token
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).json({ message: 'No token provided' });
-  }
-
-  const token = authHeader.split(' ')[1];
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-    req.userId = decoded.userId;
-    next();
-  } catch (error) {
-    return res.status(401).json({ message: 'Invalid token' });
-  }
-};
+// JWT auth middleware is shared in ../middleware/auth
 
 // Extract text from PDF
 const extractTextFromPDF = async (buffer) => {
@@ -465,7 +450,7 @@ Return ONLY valid JSON, no additional text.`;
 };
 
 // Resume analysis route
-router.post('/analyze', verifyToken, upload.fields([
+router.post('/analyze', auth, upload.fields([
   { name: 'resume', maxCount: 1 },
   { name: 'jobDescription', maxCount: 1 }
 ]), async (req, res) => {
@@ -566,7 +551,7 @@ router.post('/analyze', verifyToken, upload.fields([
 });
 
 // Generate ATS-friendly resume route
-router.post('/generate-ats-resume', verifyToken, async (req, res) => {
+router.post('/generate-ats-resume', auth, async (req, res) => {
   try {
     const { profile, analysisResult } = req.body || {};
 

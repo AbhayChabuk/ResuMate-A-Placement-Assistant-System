@@ -35,5 +35,12 @@ export const authAPI = {
   },
 };
 
+export const placementPrepAPI = {
+  getRoadmap: () => api.get('/placementprep/ai-roadmap'),
+  generateRoadmap: (domain, regenerate = false) =>
+    api.post('/placementprep/ai-roadmap', { domain, regenerate }),
+  updateRoadmap: (payload) => api.patch('/placementprep/ai-roadmap', payload),
+};
+
 export default api;
 

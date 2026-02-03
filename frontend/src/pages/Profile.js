@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../utils/api';
 import './Profile.css';
@@ -39,6 +39,46 @@ const Profile = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  // Load existing profile on mount so user can view/edit it
+  useEffect(() => {
+    let isMounted = true;
+    const loadProfile = async () => {
+      // 1) Prefill from localStorage if we have cached profile
+      try {
+        const stored = JSON.parse(localStorage.getItem('user') || 'null');
+        if (stored && stored.profile && isMounted) {
+          setFormData((prev) => ({
+            ...prev,
+            ...stored.profile,
+          }));
+        }
+      } catch {
+        // ignore localStorage parse errors
+      }
+
+      // 2) Then try to load latest profile from API
+      try {
+        const res = await authAPI.getProfile();
+        if (!isMounted) return;
+        if (res.data && res.data.profile) {
+          setFormData((prev) => ({
+            ...prev,
+            ...res.data.profile,
+          }));
+        }
+      } catch (err) {
+        // Silently ignore if no profile yet
+      } finally {
+        if (isMounted) setInitialLoading(false);
+      }
+    };
+    loadProfile();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -86,9 +126,11 @@ const Profile = () => {
 
     try {
       await authAPI.saveProfile(formData);
-      // Update user in localStorage
-      const user = JSON.parse(localStorage.getItem('user'));
+
+      // Update user in localStorage with latest profile + flag
+      const user = JSON.parse(localStorage.getItem('user') || 'null') || {};
       user.hasProfile = true;
+      user.profile = formData;
       localStorage.setItem('user', JSON.stringify(user));
       
       navigate('/main');
@@ -102,7 +144,7 @@ const Profile = () => {
   return (
     <div className="profile-container">
       <div className="profile-card">
-        <h1>Create Your Profile</h1>
+        <h1>{initialLoading ? 'Loading Profile...' : 'Your Profile'}</h1>
         {error && <div className="error-message">{error}</div>}
         <form onSubmit={handleSubmit}>
           {/* Personal Details Section */}

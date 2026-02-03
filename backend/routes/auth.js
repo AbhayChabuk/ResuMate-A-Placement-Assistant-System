@@ -1,162 +1,127 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// In-memory storage (replace with database in production)
-let users = [];
-let profiles = [];
+const User = require('../models/User');
+const auth = require('../middleware/auth');
 
-// Signup route
-router.post('/signup', async (req, res) => {
+const signToken = (user) => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET is not configured');
+  return jwt.sign(
+    { userId: user._id.toString(), email: user.email, role: user.role },
+    secret,
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+  );
+};
+
+const hasProfile = (u) => {
+  const p = u?.profile || {};
+  return !!Object.keys(p).length;
+};
+
+const registerHandler = async (req, res, next) => {
   try {
-    const { name, email, dob, gender, password } = req.body;
+    const { name, email, password, role } = req.body || {};
+    if (!name || !email || !password) return res.status(400).json({ message: 'name, email, and password are required' });
 
-    // Check if user already exists
-    const existingUser = users.find(user => user.email === email);
-    if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
+    const existing = await User.findOne({ email: String(email).toLowerCase().trim() }).select('_id');
+    if (existing) return res.status(400).json({ message: 'User already exists' });
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      name: String(name).trim(),
+      email: String(email).toLowerCase().trim(),
+      password: String(password),
+      role: role ? String(role).trim() : undefined,
+    });
 
-    // Create user
-    const newUser = {
-      id: users.length + 1,
-      name,
-      email,
-      dob,
-      gender,
-      password: hashedPassword,
-      hasProfile: false
-    };
-
-    users.push(newUser);
-
-    // Generate token
-    const token = jwt.sign(
-      { userId: newUser.id, email: newUser.email },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '7d' }
-    );
-
-    res.status(201).json({
+    const token = signToken(user);
+    return res.status(201).json({
       message: 'User created successfully',
       token,
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        hasProfile: newUser.hasProfile
-      }
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, hasProfile: hasProfile(user) },
     });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+  } catch (err) {
+    console.error('Register error:', err);
+    if (err?.code === 11000) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+    return res.status(500).json({
+      message: 'Registration failed',
+      error: process.env.NODE_ENV === 'production' ? undefined : err.message,
+    });
   }
-});
+};
 
-// Login route
-router.post('/login', async (req, res) => {
+// POST /api/auth/register (new)
+router.post('/register', registerHandler);
+
+// POST /api/auth/login (new, but same path as existing)
+router.post('/login', async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { email, password } = req.body || {};
+    if (!email || !password) return res.status(400).json({ message: 'email and password are required' });
 
-    // Find user
-    const user = users.find(u => u.email === email);
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+    const user = await User.findOne({ email: String(email).toLowerCase().trim() }).select('+password name email role profile');
+    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
-    // Check password
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+    const ok = await user.comparePassword(String(password));
+    if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
 
-    // Generate token
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '7d' }
-    );
-
-    res.json({
+    const token = signToken(user);
+    return res.json({
       message: 'Login successful',
       token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        hasProfile: user.hasProfile
-      }
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, hasProfile: hasProfile(user) },
     });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+  } catch (err) {
+    console.error('Login error:', err);
+    return res.status(500).json({
+      message: 'Login failed',
+      error: process.env.NODE_ENV === 'production' ? undefined : err.message,
+    });
   }
 });
 
-// Save profile route
-router.post('/profile', async (req, res) => {
+// POST /api/auth/signup (legacy alias -> register)
+router.post('/signup', async (req, res, next) => {
+  // Keep existing frontend request shape; ignore extra fields like dob/gender.
+  return registerHandler(req, res, next);
+});
+
+// Legacy: /api/auth/profile (POST/GET) kept for compatibility
+router.post('/profile', auth, async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ message: 'No token provided' });
-    }
+    // Save full profile object as sent from frontend
+    const profile = req.body || {};
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { profile },
+      { new: true, runValidators: false }
+    ).select('profile');
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-
-    const profileData = req.body;
-    const userId = decoded.userId;
-
-    // Update user hasProfile status
-    const user = users.find(u => u.id === userId);
-    if (user) {
-      user.hasProfile = true;
-    }
-
-    // Save or update profile
-    const existingProfileIndex = profiles.findIndex(p => p.userId === userId);
-    const profile = {
-      userId,
-      ...profileData
-    };
-
-    if (existingProfileIndex !== -1) {
-      profiles[existingProfileIndex] = profile;
-    } else {
-      profiles.push(profile);
-    }
-
-    res.json({
-      message: 'Profile saved successfully',
-      profile
+    return res.json({ message: 'Profile saved successfully', profile: user.profile });
+  } catch (err) {
+    console.error('Legacy profile save error:', err);
+    return res.status(500).json({
+      message: 'Profile save failed',
+      error: process.env.NODE_ENV === 'production' ? undefined : err.message,
     });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
-// Get profile route
-router.get('/profile', async (req, res) => {
+router.get('/profile', auth, async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ message: 'No token provided' });
-    }
-
-    const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-
-    const profile = profiles.find(p => p.userId === decoded.userId);
-
-    if (!profile) {
-      return res.status(404).json({ message: 'Profile not found' });
-    }
-
-    res.json({ profile });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    const user = await User.findById(req.user.id).select('profile');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    return res.json({ profile: user.profile });
+  } catch (err) {
+    console.error('Legacy profile fetch error:', err);
+    return res.status(500).json({
+      message: 'Profile fetch failed',
+      error: process.env.NODE_ENV === 'production' ? undefined : err.message,
+    });
   }
 });
 
