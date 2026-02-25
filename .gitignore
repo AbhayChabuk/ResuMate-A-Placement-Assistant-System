@@ -1,0 +1,6 @@
+# Secrets
+.env
+backend/.env
+
+# VS_Code_history
+.history/
