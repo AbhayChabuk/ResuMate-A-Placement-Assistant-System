@@ -1,108 +1,134 @@
-# ResuMate
+<div align="center">
+  <h1>🚀 ResuMate</h1>
+  <p><h3>Your Ultimate AI-Powered Placement & Resume Assistant</h3></p>
+  <p>
+    <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+    <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node JS" />
+    <img src="https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express" />
+    <img src="https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
+    <br/>
+    <img src="https://img.shields.io/badge/Groq%20AI-FF4A00?style=for-the-badge&logo=groq&logoColor=white" alt="Groq API" />
+  </p>
+</div>
 
-ResuMate is an AI-powered application that helps you with placement preparation and builds ATS-friendly resumes.
+<hr/>
 
-## Project Structure
+## 📖 About The Project
 
-- `frontend/` - React.js frontend application
-- `backend/` - Node.js/Express backend API
+**ResuMate** is an intelligent, full-stack application designed to be a comprehensive platform for placement preparation and ATS-friendly resume analysis. Leveraging advanced AI models via the Groq API, ResuMate analyzes user resumes against target job descriptions to provide detailed feedback, matching scores, and actionable recommendations.
 
-## Features
+Whether you're crafting your profile for upcoming campus placements or seeking a competitive edge with your resume, ResuMate provides tailored, data-driven insights.
 
-- **Authentication**: Login and Signup with secure JWT authentication
-- **Profile Generation**: Complete profile setup for first-time users
-- **PlacementPrep**: Resources for placement interview preparation
-- **ResuHelp**: AI-powered resume builder and optimizer
+## ✨ Key Features
 
-## Setup Instructions
+- **🔐 Secure Authentication** - Full authentication flow (Signup & Login) using JWT and encrypted passwords.
+- **🧑‍💻 Comprehensive Profile Builder** - Create personalized user profiles to track placement stats and resources.
+- **📚 PlacementPrep Dashboard** - Access structured learning resources and curated roadmaps tailored for placement interviews.
+- **📄 AI Resume Analyzer (ResuHelp)** - Upload your resume (PDF/DOCX/TXT) and a job description to receive an AI-generated analysis, including a matching percentage and actionable improvement tips to bypass ATS systems.
+- **⚡ Lightning-fast AI** - Powered by advanced LLMs via Groq (e.g., LLaMA-3.3, Mixtral) for incredibly fast and accurate insights.
+- **Responsive UI** - Modern React-based frontend styled with CSS3 to provide a premium user experience.
 
-### Backend Setup
+---
 
-1. Navigate to the backend directory:
+## 🏗️ Architecture & Tech Stack
+
+ResuMate follows a classic MERN (MongoDB, Express, React, Node.js) architecture. 
+
+### Frontend
+- **Framework:** React.js
+- **Routing:** React Router DOM
+- **HTTP Client:** Axios
+- **Styling:** CSS3
+
+### Backend
+- **Runtime & Framework:** Node.js, Express.js
+- **Database (via ODM):** MongoDB, Mongoose
+- **Authentication:** JWT, bcryptjs
+- **File Parsing & Uploads:** multer, pdf-parse, mammoth
+- **AI Integration:** Groq API via Axios
+
+---
+
+## 🚀 Getting Started
+
+Follow these steps to set up the project locally on your machine.
+
+### Prerequisites
+- [Node.js](https://nodejs.org/en/) (v14 or higher)
+- [MongoDB](https://www.mongodb.com/) (Local instance or Atlas cluster)
+- [Groq API Key](https://console.groq.com)
+
+### 1️⃣ Clone the Repository
 ```bash
-cd backend
+git clone https://github.com/your-username/ResuMate-A-Placement-Assistant-System.git
+cd ResuMate-A-Placement-Assistant-System
 ```
 
-2. Install dependencies:
+### 2️⃣ Backend Setup
+Navigate into the backend directory and configure the server.
+
 ```bash
+cd backend
+# Install backend dependencies
 npm install
 ```
 
-3. Create a `.env` file in the backend directory with:
-```
+Create a `.env` file inside the `backend` folder and add the following variables:
+```env
 PORT=5000
-JWT_SECRET=your-super-secret-jwt-key-change-in-production
+MONGODB_URI=your-mongodb-connection-string
+JWT_SECRET=your-super-secret-jwt-key
 GROQ_API_KEY=your-groq-api-key
 GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
 GROQ_MODEL=llama-3.3-70b-versatile
 ```
+*(Valid Groq Models: `llama-3.3-70b-versatile`, `llama-3.1-8b-instant`, `mixtral-8x7b-32768`, etc.)*
 
-**Note:** 
-- Get your Groq API key from [console.groq.com](https://console.groq.com)
-- Valid model names: `llama-3.3-70b-versatile`, `llama-3.1-8b-instant`, `mixtral-8x7b-32768`, `gemma2-9b-it`
-- Check [Groq Models Documentation](https://console.groq.com/docs/models) for current available models
-- The code also supports `GROK_API_KEY` and `GROK_API_URL` for backward compatibility
-
-4. Start the backend server:
+Start the backend development server:
 ```bash
 npm run dev
 ```
+*The backend server should now be running on `http://localhost:5000`.*
 
-The backend will run on `http://localhost:5000`
+### 3️⃣ Frontend Setup
+Open a new terminal window, navigate into the frontend directory, and start the React server.
 
-### Frontend Setup
-
-1. Navigate to the frontend directory:
 ```bash
 cd frontend
-```
-
-2. Install dependencies (if not already installed):
-```bash
+# Install frontend dependencies
 npm install
-```
 
-3. Start the React development server:
-```bash
+# Start the React app
 npm start
 ```
+*The frontend should now be running and accessible at `http://localhost:3000`.*
 
-The frontend will run on `http://localhost:3000`
+---
 
-## API Endpoints
+## 📡 API Endpoints Overview
 
-### Authentication
-- `POST /api/auth/signup` - User signup
-- `POST /api/auth/login` - User login
-- `POST /api/auth/profile` - Save user profile (Protected)
-- `GET /api/auth/profile` - Get user profile (Protected)
+The backend exposes a highly cohesive REST API. 
 
-### Resume Analysis
-- `POST /api/resume/analyze` - Analyze resume against job description (Protected)
-  - Requires: `resume` (file) and `jobDescription` (file)
-  - Supported file types: PDF, DOCX, TXT
+### 🔐 Auth & Users
+- `POST /api/auth/signup` - Register a new user
+- `POST /api/auth/login` - Authenticate user & get JWT token
+- `POST /api/auth/profile` - Save/update user profile (Protected)
+- `GET /api/auth/profile` - Retrieve user profile details (Protected)
 
-## Technology Stack
+### 📄 Resume Assistant
+- `POST /api/resume/analyze` - Analyze resume against JD (Protected)
+  - **Payload:** form-data containing `resume` (File) and `jobDescription` (File/Text)
+  - **Returns:** AI-structured JSON containing matching percentage, missing keywords, and recommendations.
 
-### Frontend
-- React.js
-- React Router DOM
-- Axios
-- CSS3
+---
 
-### Backend
-- Node.js
-- Express.js
-- bcryptjs (Password hashing)
-- jsonwebtoken (JWT authentication)
-- multer (File upload handling)
-- pdf-parse (PDF text extraction)
-- mammoth (DOCX text extraction)
-- axios (HTTP client for Groq API)
-- Groq API (AI-powered resume analysis)
-- CORS
+## 🔮 Future Enhancements
+- [ ] Integration of mock coding assessments.
+- [ ] Company-specific interview experiences and frequently asked questions.
+- [ ] Support for direct LinkedIn profile parsing.
+- [ ] Exporting optimized resumes directly to PDF.
 
-## Development
-
-Make sure both frontend and backend servers are running simultaneously for full functionality.
-
+---
+<div align="center">
+  <p>Built with ❤️ for students preparing for placements.</p>
+</div>
